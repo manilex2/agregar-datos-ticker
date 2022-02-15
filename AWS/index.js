@@ -92,7 +92,6 @@ exports.handler = async function (event) {
                 conexion.end();
             });
         };
-        respuesta.send("OK");
     });
     return promise;
 }
