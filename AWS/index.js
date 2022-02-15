@@ -1,28 +1,33 @@
 require('dotenv').config();
 const mysql = require('mysql2');
 const { database } = require('./keys');
-const conexion = mysql.createConnection({
-    host: database.host,
-    user: database.user,
-    password: database.password,
-    port: database.port,
-    database: database.database
+const {google} = require('googleapis');
+const auth = new google.auth.GoogleAuth({
+    keyFile: "credentials.json",
+    scopes: "https://www.googleapis.com/auth/spreadsheets"
 });
 
 exports.handler = async function (event) {
     const promise = new Promise(async function() {
+        const conexion = mysql.createConnection({
+            host: database.host,
+            user: database.user,
+            password: database.password,
+            port: database.port,
+            database: database.database
+        });
         const spreadsheetId = process.env.SPREADSHEET_ID;
         const client = await auth.getClient();
         const googleSheet = google.sheets({ version: 'v4', auth: client });
         var arreglo = [];
         var request = (await googleSheet.spreadsheets.values.get({
-            auth,
-            spreadsheetId,
-            range: `${process.env.ID_HOJA}!A2:L`
-        })).data;
+                    auth,
+                    spreadsheetId,
+                    range: `${process.env.ID_HOJA}!A2:L`
+                })).data;
         var recogerDatos = request.values;
         agregarDatos(recogerDatos);
-
+    
         function agregarDatos(recogerDatos) {
             for(i = 0; i < recogerDatos.length; i++){
                 var ticker = recogerDatos[i][0].toString();
@@ -87,6 +92,7 @@ exports.handler = async function (event) {
                 conexion.end();
             });
         };
+        respuesta.send("OK");
     });
     return promise;
 }
