@@ -1,9 +1,9 @@
 {
-    "name": "grafico-ultima",
+    "name": "agregar-datos",
     "version": "1.0.0",
-    "description": "",
+    "description": "Función que agrega los datos de seguimiento de oportunidades en la Base de Datos AWS RDS",
     "keywords": [],
-    "author": "",
+    "author": "Manuel Pereira",
     "license": "ISC",
     "scripts": {
         "dev": "nodemon index.js"

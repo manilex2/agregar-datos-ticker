@@ -28,9 +28,9 @@ exports.handler = async function (event) {
         var recogerDatos = request.values;
         agregarDatos(recogerDatos);
     
-        function agregarDatos(recogerDatos) {
+        async function agregarDatos(recogerDatos) {
             for(i = 0; i < recogerDatos.length; i++){
-                var ticker = recogerDatos[i][0].toString();
+                var name = recogerDatos[i][0].toString();
                 var indice = recogerDatos[i][1].toString();
                 var fecha = recogerDatos[i][2].toString();
                 if (!recogerDatos[i][3]) {
@@ -83,15 +83,37 @@ exports.handler = async function (event) {
                 } else {
                     var sl2 = parseFloat(recogerDatos[i][12]);
                 }
-                arreglo.push([ticker, indice, fecha, preop, propost, p1, p2, p3, p4, pm, pm2, sl, sl2]);
+                arreglo.push([name, indice, fecha, preop, propost, p1, p2, p3, p4, pm, pm2, sl, sl2]);
             };
-            let sql = "INSERT INTO datos (ticker, indice, fecha, preop, propost, p1, p2, p3, p4, pm, pm2, sl, sl2) VALUES ?";
-            conexion.query(sql, [arreglo], function (err, resultado) {
-                if (err) throw err;
-                console.log(resultado);
-                conexion.end();
-            });
+            for (let i = 0; i < arreglo.length; i++) {
+                let sql = `INSERT INTO datos (${process.env.CRIPTOTICKER}, indice, fecha, preop, propost, p1, p2, p3, p4, pm, pm2, sl, sl2)
+                SELECT * FROM (SELECT
+                    '${arreglo[i][0]}' AS ${process.env.CRIPTOTICKER},
+                    '${arreglo[i][1]}' AS indice,
+                    '${arreglo[i][2]}' AS fecha,
+                    ${arreglo[i][3]} AS preop,
+                    ${arreglo[i][4]} AS propost,
+                    ${arreglo[i][5]} AS p1,
+                    ${arreglo[i][6]} AS p2,
+                    ${arreglo[i][7]} AS p3,
+                    ${arreglo[i][8]} AS p4,
+                    ${arreglo[i][9]} AS pm,
+                    ${arreglo[i][10]} AS pm2,
+                    ${arreglo[i][11]} AS sl,
+                    ${arreglo[i][12]} AS sl2) AS tmp
+                WHERE NOT EXISTS (
+                    SELECT indice, fecha FROM datos WHERE indice = '${arreglo[i][1]}' AND fecha = '${arreglo[i][2]}'
+                ) LIMIT 1`;
+                conexion.query(sql, function (err, resultado) {
+                    if (err) throw err;
+                    console.log(resultado);
+                });
+            }
+            await finalizarEjecucion();
         };
+        async function finalizarEjecucion() {
+            conexion.end();
+        }
     });
     return promise;
 }
