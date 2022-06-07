@@ -3,3 +3,4 @@ credentials.json
 *.zip
 .env
 package-lock.json
+.DS_Store
